@@ -1,13 +1,8 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
 - master
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 steps:
 - task: Maven@4
@@ -15,19 +10,23 @@ steps:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
     javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
+    jdkVersionOption: '1.8' # Matched to your Azure Java 8 setting
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+    goals: 'clean package' # Added 'clean' to ensure a fresh build
+
 - task: CopyFiles@2
+  displayName: 'Copy WAR file'
   inputs:
-    Contents: '**/*.war'
+    # This looks inside the 'target' folder where Maven puts the war
+    SourceFolder: '$(system.defaultworkingdirectory)/target' 
+    Contents: '*.war'
     TargetFolder: '$(build.artifactstagingdirectory)'
+    flattenFolders: true # This prevents extra sub-folders inside the artifact
 
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'FirstWARFile'
     publishLocation: 'Container'
-    
