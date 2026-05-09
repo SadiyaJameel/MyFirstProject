@@ -15,18 +15,21 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'clean package'
-
 - task: CopyFiles@2
-  displayName: 'Copy WAR file'
+  displayName: 'Copy and Rename to ROOT.war'
   inputs:
-    # Use the root directory and let 'Contents' search for the file
-    SourceFolder: '$(system.defaultworkingdirectory)' 
-    Contents: '**/target/*.war' # Finds the .war inside ANY target folder
+    SourceFolder: '$(system.defaultworkingdirectory)'
+    Contents: '**/target/*.war'
     TargetFolder: '$(build.artifactstagingdirectory)'
-    flattenFolders: true 
+    flattenFolders: true
+
+- script: |
+    cd $(build.artifactstagingdirectory)
+    # This finds whatever war was copied and renames it to ROOT.war
+    mv *.war ROOT.war
+  displayName: 'Rename for Tomcat'
 
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'FirstWARFile'
-    publishLocation: 'Container'
