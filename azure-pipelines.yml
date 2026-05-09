@@ -5,31 +5,46 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+# 1. Build and Test the application
 - task: Maven@4
+  displayName: 'Maven Build, Test, and Package'
   inputs:
     mavenPomFile: 'pom.xml'
+    # -B: Batch mode (cleaner logs)
+    # -ntp: No transfer progress (stops the download spam)
+    options: '-B -ntp'
     mavenOptions: '-Xmx3072m'
     javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
+    # Updated to 1.17 to match your agent logs
+    jdkVersionOption: '1.17'
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'clean package'
+
+# 2. Copy the .war file to the staging area
 - task: CopyFiles@2
-  displayName: 'Copy and Rename to ROOT.war'
+  displayName: 'Copy WAR to Staging'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)'
+    # Finds any .war file in the target folder
     Contents: '**/target/*.war'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
 
+# 3. Rename the file to ROOT.war for Tomcat deployment
 - script: |
     cd $(build.artifactstagingdirectory)
-    # This finds whatever war was copied and renames it to ROOT.war
+    # This finds the copied war and renames it
+    # We use a wildcard *.war to find the file regardless of the version name
     mv *.war ROOT.war
+    echo "Renamed file to ROOT.war successfully"
   displayName: 'Rename for Tomcat'
 
+# 4. Upload the final artifact so it can be used in a Release
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'FirstWARFile'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
