@@ -13,7 +13,7 @@ steps:
     # -B: Batch mode (cleaner logs)
     # -ntp: No transfer progress (stops the download spam)
     options: '-B -ntp'
-    mavenOptions: '-Xmx3072m'
+    mavenOptions: $(maven value)
     javaHomeOption: 'JDKVersion'
     # Updated to 1.17 to match your agent logs
     jdkVersionOption: '1.17'
