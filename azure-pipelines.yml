@@ -20,7 +20,7 @@ steps:
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'clean package'
+    goals: 'clean install'
 
 # 2. Copy the .war file to the staging area
 - task: CopyFiles@2
